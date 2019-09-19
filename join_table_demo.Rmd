@@ -1,0 +1,139 @@
+---
+title: "Join table tutorial"
+output: html_document
+---
+## Setting up a data
+
+1. Load the packages and the data
+```{r setup, include=FALSE}
+library(dplyr)
+library(magrittr)
+library(tidyr)
+
+# description of the data we use
+?cluster::plantTraits
+
+# load the simplified version
+source("R/simplified_trait_data.R")
+traitNA
+```
+
+
+Split the data into 3 separate objects:
+
+```{r}
+# Diaspore mass
+traitNA %>% dplyr::select(Species, pdias) -> trait_pdias
+
+# Seedbank longevity
+traitNA %>% dplyr::select(Species, longindex) -> trait_longindex
+
+# Flowering duration and plant height
+traitNA %>% dplyr::select(Species, durflow, height) -> trait_durflow_height
+
+# Inspect each object
+trait_pdias;trait_longindex;trait_durflow_height
+```
+
+
+## General category of join table function
+
+### Horizontal Join
+
+#### 1. Column bind
+Simply adding all columns from one data set (x) to another (y):
+
+```{r}
+# see help for bind_cols
+?bind_cols
+
+bind_cols(trait_pdias, trait_longindex, trait_durflow_height)
+```
+
+
+```{r}
+# Remove `Species` column #1
+bind_cols(trait_pdias, trait_longindex[2], trait_durflow_height[2:3])
+
+# Remove `Species` column #2
+bind_cols(trait_pdias, trait_longindex[-1], trait_durflow_height[-1])
+
+# R base
+cbind(trait_pdias, trait_longindex[-1], trait_durflow_height[-1])
+```
+
+
+bind_cols does not work when the data have different row number:
+
+```{r}
+trait_pdias %>% drop_na ->trait_pdias_no_na
+
+trait_pdias_no_na %>% bind_cols(trait_longindex)
+```
+
+
+#### 2. Join functions
+
+- Left join
+I
+```{r}
+left_join(trait_pdias, trait_longindex, by="Species")
+```
+
+```{r}
+left_join(trait_longindex, trait_pdias)
+```
+
+```{r}
+trait_pdias_no_na
+left_join(trait_longindex, trait_pdias_no_na)
+```
+
+
+```{r}
+trait_pdias_no_na
+left_join(trait_pdias_no_na, trait_longindex)
+```
+
+
+```{r}
+left_join(trait_longindex, trait_pdias_no_na, by="Species") 
+
+#is identical to:
+right_join(trait_pdias_no_na, trait_longindex, by="Species")
+```
+
+
+```{r}
+# LHS as the reference
+trait_pdias_no_na %>% left_join(trait_longindex, by="Species")
+
+#is identical to:
+
+# RHS as the reference
+trait_longindex %>% right_join(trait_pdias_no_na, by="Species")
+```
+
+
+```{r}
+inner_join(trait_longindex, trait_pdias_no_na, by="Species")
+inner_join(trait_pdias_no_na,trait_longindex, by="Species")
+```
+
+```{r}
+full_join(trait_longindex, trait_pdias_no_na, by="Species")
+full_join(trait_pdias_no_na,trait_longindex, by="Species")
+```
+
+
+```{r}
+semi_join(trait_longindex, trait_pdias_no_na, by="Species")
+semi_join(trait_pdias_no_na,trait_longindex, by="Species")
+```
+
+
+```{r}
+anti_join(trait_longindex, trait_pdias_no_na, by="Species")
+anti_join(trait_pdias_no_na,trait_longindex, by="Species")
+```
+
